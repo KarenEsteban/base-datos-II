@@ -16,10 +16,10 @@ import java.util.ArrayList;
  * @author campitos
  */
 public class DAOPelicula {
-    
+    static ArrayList<Pelicula> peliculas;
     
     public static String guardarPelicula(String titulo, String sinopsis) throws Exception{
-       Conexion c=new Conexion();
+        Conexion c=new Conexion();
         Connection con=c.conectarse();
      CallableStatement callate=con.prepareCall("{call guardar_pelicula(?,?,?)}");
         callate.registerOutParameter(1,java.sql.Types.INTEGER);
@@ -30,35 +30,59 @@ public class DAOPelicula {
         int pk=callate.getInt(1);
         return "SE guardo la pelicula con id:"+pk; 
     }
-    
-    
-    public static  String buscarTodasPeliculas(){
-        //primero nos conectamos a Oracle
-        String resultado="no hay nada";
-        try{
-   Connection con=     Conexion.conectarse();
-       Statement st=  con.createStatement();
-       //Con el statement realizamos los cueris
-         ResultSet res= st.executeQuery("select * from pelicula");
-       //Iterar ek resulset para ver los resultados de mi cueri
-         int contador=0;
-         ArrayList<Pelicula> peliculas=new ArrayList<Pelicula>();
-         while(res.next()){
-             Pelicula p=new Pelicula();
-                    p.setId(res.getInt(1));
-                    p.setTitulo(res.getString(2));
-                   p.setSinopsis(res.getString(3));
-                    peliculas.add(p);
-         }
-         
-          resultado="encontramos "+peliculas.toString()+" registros";
-   
-            }catch(Exception e){
-            resultado=e.getMessage();
-        }
-        return resultado;
+    public static String actualizarPelicula(Integer id,String titulo, String sinopsis) throws Exception{
+        Conexion c=new Conexion();
+        Connection con=c.conectarse();
+     CallableStatement callate=con.prepareCall("{call actualizar_pelicula(?,?,?)}");
+        callate.setInt(1,id);
+        callate.setString(2,titulo);
+        callate.setString(3,sinopsis);
+      
+        callate.execute();
+        return "Pelicula actualizada con exito"; 
     }
-    
-
-    
+     public static  ArrayList<Pelicula> buscarTodasPeliculas() throws Exception{
+        String mensajito = "nada";
+        Connection con= Conexion.conectarse();
+        //Generamos una setencia para usar oracle desde java
+        Statement st = con.createStatement();
+        //Cursor
+        ResultSet res = st.executeQuery("SELECT * FROM PELICULA");
+        int numRegistros=0;
+        peliculas= new ArrayList<>();
+        while(res.next()){
+            numRegistros++;
+            Integer id=res.getInt("ID_PELICULA");
+            String titulo=res.getString("TITULO");
+            String sinopsis=res.getString("SINOPSIS");
+            //CREAMOS EL OBJETO DE TIPO PELICULA
+            Pelicula p=new Pelicula(id, titulo, sinopsis);
+            peliculas.add(p);
+        }
+        mensajito="Registros encontrados: "+numRegistros;
+        return peliculas;
+     }
+     
+     public static  ArrayList<Pelicula> buscarPorNombre(String titulo) throws Exception{
+        String mensajito = "nada";
+        Connection con= Conexion.conectarse();
+        //Generamos una setencia para usar oracle desde java
+        Statement st = con.createStatement();
+        //Cursor
+        ResultSet res = st.executeQuery("SELECT * FROM PELICULA WHERE TITULO='"+titulo+"'");
+        int numRegistros=0;
+        peliculas= new ArrayList<>();
+        while(res.next()){
+            numRegistros++;
+            Integer id=res.getInt("ID_PELICULA");
+            String tit=res.getString("TITULO");
+            String sinopsis=res.getString("SINOPSIS");
+            //CREAMOS EL OBJETO DE TIPO PELICULA
+            Pelicula p=new Pelicula(id, tit, sinopsis);
+            peliculas.add(p);
+        }
+        mensajito="Registros encontrados: "+numRegistros;
+        return peliculas;
+     }
+     
 }
